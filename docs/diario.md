@@ -33,3 +33,16 @@
 | **Uso típico** | Comprobar antes de usar | Comprobar contenido real | Asignar default |
 | **Equivalente a** | — | `!isset($x) \|\| $x === falsy` | `isset($x) ? $x : $default` |
 | **Asignación** | — | — | `$x ??= 'def'` (PHP 7.4+) |   
+
+**3:** Investigacion de terminos necesarios para continuar con el proyecto:
+- **`Arrays asociativos`**: Para crear este tipo de arrays debemos utilizar la sintaxis `clave => valor`.
+- **`json_encode()`**: Convierte un valor PHP (array, objeto, string, etc.) en una cadena JSON.
+- **`JSON_UNESCAPED_UNICODE`**: Opcional. Evita que los caracteres no ASCII se escapen como `\uXXXX`, imprimiéndolos directamente (p. ej. `é` en vez de `\u00e9`).   
+- **`header()`**: Envía un encabezado HTTP al cliente.
+  - Ejemplo: `header('Content-Type: application/json');`
+  - Ejemplo: `header('Location: /login');` → redirige (302).
+  - Debe ir antes de cualquier `echo` o HTML, PHP envía los headers una sola vez al inicio; si ya hay salida, da error *"headers already sent"*.
+- **`http_response_code()`**: Obtiene o define el código de estado HTTP.
+  - `http_response_code(404);` → fija el código.
+  - `echo http_response_code();` → lo imprime.   
+
