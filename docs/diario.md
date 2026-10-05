@@ -53,3 +53,101 @@
 - **Separación de responsabilidades (Arquitectura)**: He aprendido a dividir el código. El archivo `index.php` ahora actúa como un **Router** o controlador (recibe la petición, mira el parámetro `action` y dirige el tráfico), mientras que `lib/validar.php` actúa como **Librería** (solo procesa datos matemáticos o lógicos y devuelve resultados, pero nunca imprime nada por pantalla).
 
 **5:** Por qué testear aunque sea feo: Escribir tests automatizados desde el día 1 me permite refactorizar código sin miedo. Si rompo la validación en el futuro, este script me avisará, evitando que el bug llegue a producción.
+
+**6:** Investigación sobre acceso a bases de datos con PHP mediante PDO
+
+- **PDO (PHP Data Objects)**: Es la clase nativa de PHP que permite conectarse y trabajar con diferentes sistemas de bases de datos, como MariaDB, MySQL, PostgreSQL, SQLite, etc. Permite realizar consultas de una forma más segura y estructurada.
+
+- **DSN (Data Source Name)**: Es la cadena de texto que indica a PDO a qué base de datos debe conectarse y dónde se encuentra. Para MariaDB/MySQL, un DSN básico tiene una estructura como:
+
+```
+mysql:host=localhost;dbname=mi_base_de_datos;charset=utf8mb4
+```
+
+En él se indica el controlador (mysql), el servidor (host), la base de datos (dbname) y la codificación de caracteres (charset).
+
+- **Prepared Statements (Sentencias Preparadas)**: Son una forma segura de realizar consultas que utilizan datos que nos dé el usuario. En lugar de concatenar directamente una variable dentro de la consulta, se utilizan `prepare()` y `execute()`:
+
+```php
+$stmt = $pdo->prepare(
+    'SELECT * FROM tabla WHERE ean = :ean'
+);
+$stmt->execute([
+    'ean' => $ean
+]);
+```
+
+Esto es importante para evitar la Inyección SQL. Si concatenáramos directamente el valor, un usuario podría introducir contenido que modificase la consulta SQL:
+
+```php
+"SELECT * FROM tabla WHERE ean = '$ean'"
+```
+
+- **PDO::ATTR_ERRMODE y PDO::ERRMODE_EXCEPTION**: Permiten configurar PDO para que los errores de las consultas se conviertan en excepciones. De esta forma podemos capturarlos mediante try/catch y controlar qué ocurre cuando algo falla:
+
+```php
+$pdo->setAttribute(
+    PDO::ATTR_ERRMODE,
+    PDO::ERRMODE_EXCEPTION
+);
+```
+
+Por ejemplo:
+
+```php
+try {
+    $stmt = $pdo->prepare(
+        'SELECT * FROM tabla WHERE ean = :ean'
+    );
+
+    $stmt->execute(['ean' => $ean]);
+} catch (PDOException $e) {
+    // Gestionar el error
+}
+```
+
+- **PDO::FETCH_ASSOC**: Es un modo de recuperación de datos que hace que cada fila obtenida de la base de datos se convierta en un array asociativo, utilizando los nombres de las columnas como claves:
+
+```php
+$stmt->fetch(PDO::FETCH_ASSOC);
+```
+
+Por ejemplo, si la tabla tiene las columnas ean, nombre y precio, el resultado podría ser:
+
+```php
+[
+    'ean' => '8412345678901',
+    'nombre' => 'Producto de prueba',
+    'precio' => 12.50
+]
+```
+
+Esto resulta más limpio y fácil de utilizar que recibir también índices numéricos (0, 1, 2, etc.).
+
+**Tabla resumen**
+
+| Concepto | Función |
+|---|---|
+| PDO | Permite conectar y trabajar con bases de datos desde PHP |
+| DSN | Indica a PDO dónde y a qué base de datos conectarse |
+| prepare() | Prepara una consulta SQL con parámetros |
+| execute() | Ejecuta la consulta proporcionando los valores de los parámetros |
+| Prepared Statements | Separan el SQL de los datos y ayudan a prevenir la Inyección SQL |
+| PDO::ERRMODE_EXCEPTION | Hace que los errores de PDO lancen excepciones |
+| try/catch | Permite capturar y gestionar esas excepciones |
+| PDO::FETCH_ASSOC | Devuelve cada fila como un array asociativo |
+
+**Buenas prácticas: Conexiones a Base de Datos en PHP**
+Para mantener un proyecto ordenado y seguro, sigo esta estructura al trabajar con PDO:
+
+1. **Aislamiento (`lib/db.php`)**: La lógica de conexión (DSN, usuario, contraseña) nunca debe estar mezclada con la lógica de negocio (enrutadores o vistas), debe existir en una función aislada que devuelva el objeto PDO.
+2. **Nomenclatura**:
+    * `$pdo` o `$db`: Para la variable que almacena la conexión (el objeto PDO).
+    * `$stmt` (Statement): Para la variable que guarda la sentencia preparada tras llamar a `prepare()`.
+    * `$rows` o `$resultados`: Para los datos crudos extraídos tras el `fetchAll()`.
+3. **El Flujo Seguro**:
+    * **Paso 1:** Llamar a la conexión: `$pdo = db();`
+    * **Paso 2:** Preparar la consulta con marcadores (`?` o `:nombre`): `$stmt = $pdo->prepare("SELECT * FROM tabla WHERE campo = ?");`
+    * **Paso 3:** Ejecutar pasando los parámetros (limpios): `$stmt->execute([$variable]);`
+    * **Paso 4:** Extraer asociativamente: `$datos = $stmt->fetchAll(PDO::FETCH_ASSOC);`
+4. **Protección**: Nunca interpolar variables directamente en el SQL (`"SELECT * FROM t WHERE id = $id"`). **Siempre** usar `execute([$id])`.
