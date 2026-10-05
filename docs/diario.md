@@ -52,4 +52,4 @@
 - **Tipado de retorno Nullable (`?tipo`)**: Al definir una función como `function validar(): ?string`, le indicamos a PHP de forma estricta que esta función devolverá un texto o, en caso de que la validación falle, `null`. 
 - **Separación de responsabilidades (Arquitectura)**: He aprendido a dividir el código. El archivo `index.php` ahora actúa como un **Router** o controlador (recibe la petición, mira el parámetro `action` y dirige el tráfico), mientras que `lib/validar.php` actúa como **Librería** (solo procesa datos matemáticos o lógicos y devuelve resultados, pero nunca imprime nada por pantalla).
 
-**5:** Por qué testear aunque sea feo: Escribir tests automatizados desde el día 1 me da la red de seguridad necesaria para refactorizar código sin miedo. Si rompo la validación en el futuro, este script de consola me avisará en un segundo, evitando que el bug llegue a producción.
+**5:** Por qué testear aunque sea feo: Escribir tests automatizados desde el día 1 me permite refactorizar código sin miedo. Si rompo la validación en el futuro, este script me avisará, evitando que el bug llegue a producción.

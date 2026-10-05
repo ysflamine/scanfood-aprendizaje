@@ -1,0 +1,12 @@
+CREATE DATABASE IF NOT EXISTS scanfood_mio
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE scanfood_mio;
+
+CREATE TABLE IF NOT EXISTS productos (
+    ean VARCHAR(20) PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    marca VARCHAR(255),
+    creado TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
