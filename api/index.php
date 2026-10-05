@@ -1,16 +1,24 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
+require_once __DIR__ . '/../lib/validar.php';
+$action = $_GET['action'] ?? 'eco';//hacemos uso del operador Null Coalescing para tener un valor por defecto si no tiene nada
 
-$ean = $_GET['ean'] ?? ''; // Obtiene el código EAN de la URL, si está presente
-$eanLimpio = preg_replace('/[^0-9]/', '', $ean); //preg_replace ayuda a filtrar con expresiones regulares
-$longitud = strlen($eanLimpio); // Calcula el largo del código EAN recibido
+match ($action) {
+    'eco' => (function () {
+        $resultado = validar_ean($_GET['ean'] ?? '');
 
+        if ($resultado !== null) {
+            echo json_encode(["exito" => true]);
+        } else {
+            http_response_code(400);
+            echo json_encode(["error" => "ean_invalido"]);
+        }
+    })(),
 
+    'ping' => print json_encode(["hora" => date('c')]),
 
-if (is_string($eanLimpio) && $eanLimpio !== '' && $longitud > 5 && $longitud < 15) { //uso is_string debido a que me ayuda a descartar null, false, 0, arrays, etc. Todo de una.
-    echo json_encode(["ok" => true, "ean" => $eanLimpio]);
-
-}else{
-    http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => ['code' => 'bad_ean', 'message' => 'EAN inválido']]);
-}
+    default => (function () {
+        http_response_code(400);
+        echo json_encode(["error" => "bad_action"]);
+    })()
+};
