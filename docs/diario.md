@@ -151,3 +151,14 @@ Para mantener un proyecto ordenado y seguro, sigo esta estructura al trabajar co
     * **Paso 3:** Ejecutar pasando los parámetros (limpios): `$stmt->execute([$variable]);`
     * **Paso 4:** Extraer asociativamente: `$datos = $stmt->fetchAll(PDO::FETCH_ASSOC);`
 4. **Protección**: Nunca interpolar variables directamente en el SQL (`"SELECT * FROM t WHERE id = $id"`). **Siempre** usar `execute([$id])`.
+
+**7:** Alta de Productos y Manejo de Errores UNIQUE
+
+- **Excepciones (try/catch)**: He aprendido a manejar errores fatales en PHP usando bloques try/catch. En lugar de dejar que el script se rompa al ocurrir un error (como un duplicado en la base de datos), el catch intercepta la excepción (en este caso, una PDOException) y me permite devolver una respuesta controlada y elegante al usuario.
+
+- **SQLSTATE 23000**: Este es el código de error estándar que devuelve MariaDB cuando intentamos insertar un registro que rompe una restricción UNIQUE (como duplicar la clave primaria ean). Lo capturo comprobando $e->getCode() == 23000 en el bloque catch.
+
+- **Códigos HTTP**:
+    - **201 Created**: Lo utilizo para confirmar que la creación del producto fue exitosa.
+    - **409 Conflict**: Lo devuelvo cuando el registro ya existe, indicando que la petición choca con el estado actual del servidor.
+    - **500 Internal Server Error**: Actúa como un cajón de sastre genérico para cualquier otro error de base de datos inesperado, evitando mostrar detalles internos del servidor.
